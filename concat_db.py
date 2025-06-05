@@ -5,7 +5,7 @@ from langchain.text_splitter import CharacterTextSplitter
 import os
 import json
 
-os.environ["GOOGLE_API_KEY"] = "AIzaSyCpQOWqNL50eYj0xULbdxMI8GdP2Gz7u6M"
+os.environ["GOOGLE_API_KEY"] = ""
 
 embedding = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-exp-03-07")
 
