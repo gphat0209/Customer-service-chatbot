@@ -24,9 +24,9 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.runnables import RunnableMap
+from postgresql_handler import PostgreSQLHandler
 
-
-os.environ["GOOGLE_API_KEY"] = ""
+os.environ["GOOGLE_API_KEY"] = "AIzaSyCpQOWqNL50eYj0xULbdxMI8GdP2Gz7u6M"
 
 embedding = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-exp-03-07")
 vectorstore = Chroma(persist_directory="db/merged2_db", embedding_function=embedding)
@@ -100,21 +100,32 @@ def build_rag_chain(retriever):
 
 rag_chain = build_rag_chain(retriever)
 
-log_dir = "logs2"
-os.makedirs(log_dir, exist_ok=True)
+# log_dir = "logs2"
+# os.makedirs(log_dir, exist_ok=True)
+# session_id = datetime.now().strftime("session_%Y%m%d_%H%M%S")
+# log_path = os.path.join(log_dir, f"{session_id}.log")
+
+
+# logging.basicConfig(
+#     level=logging.INFO,
+#     filename=log_path,
+#     filemode="w",
+#     encoding="utf-8",
+#     format="%(asctime)s - %(levelname)s - %(message)s"
+# )
+
 session_id = datetime.now().strftime("session_%Y%m%d_%H%M%S")
-log_path = os.path.join(log_dir, f"{session_id}.log")
 
+dsn = "host=localhost dbname=logging_info user=postgres password=phatdeptrai123 port=5432"
+db_handler = PostgreSQLHandler(dsn)
+# db_handler.setLevel(logging.INFO)
+# db_handler.setFormatter(logging.Formatter("%(acstime)s - %(levelname)s - %(message)s"))
 
-logging.basicConfig(
-    level=logging.INFO,
-    filename=log_path,
-    filemode="w",
-    encoding="utf-8",
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logger = logging.getLogger("chat_logger")
+logger.setLevel(logging.INFO)
+logger.addHandler(db_handler)
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -144,14 +155,16 @@ def qa_chatbot(input: ChatInput):
         # results = llm_app.invoke({"messages": [HumanMessage(content=input.user_input)]}, config={"configurable": {"thread_id": "1"}})
         elapsed = time.time() - start_time
 
-        if len(chat_history["User"]) == 10:
+        if len(chat_history["User"]) == 5:
             chat_history["User"].pop(0)
             chat_history["AI Chatbot"].pop(0)
         
         chat_history["User"].append(input.user_input)
         chat_history["AI Chatbot"].append(results)
 
-        logger.info(f"Người dùng hỏi: {input.user_input} | Chatbot trả lời: {results} | Thời gian xử lý: {elapsed:.2f} giây" )
+        logger.info("Đã xử lý truy vấn", extra={"session_id":session_id,"user_query":input.user_input, 
+                                                "response":results, "time_elapsed":round(elapsed, 2)})
+
         # return {"results": results["messages"][-1].content}
         return {"results":results}
     except Exception as e:
