@@ -26,7 +26,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.runnables import RunnableMap
 from postgresql_handler import PostgreSQLHandler
 
-os.environ["GOOGLE_API_KEY"] = "AIzaSyCpQOWqNL50eYj0xULbdxMI8GdP2Gz7u6M"
+os.environ["GOOGLE_API_KEY"] = ""
 
 embedding = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-exp-03-07")
 vectorstore = Chroma(persist_directory="db/merged2_db", embedding_function=embedding)
